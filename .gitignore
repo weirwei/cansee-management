@@ -2,3 +2,4 @@
 cansee-management.iml
 target
 src/main/resources/application-enc.yml
+src/main/java/com/weirwei/MysqlGenerator.java
