@@ -1,10 +1,29 @@
 package com.weirwei.cansee.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fehead.lang.error.BusinessException;
+import com.weirwei.cansee.controller.vo.OrgListVO;
+import com.weirwei.cansee.controller.vo.OrgVO;
+import com.weirwei.cansee.controller.vo.RoleVO;
+import com.weirwei.cansee.mapper.OrgUserMapper;
+import com.weirwei.cansee.mapper.dao.OrgUser;
 import com.weirwei.cansee.mapper.dao.Organization;
 import com.weirwei.cansee.mapper.OrganizationMapper;
+import com.weirwei.cansee.mapper.dao.Role;
 import com.weirwei.cansee.service.IOrganizationService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.weirwei.cansee.util.IdUtil;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -17,4 +36,43 @@ import org.springframework.stereotype.Service;
 @Service
 public class OrganizationServiceImpl extends ServiceImpl<OrganizationMapper, Organization> implements IOrganizationService {
 
+    @Resource
+    OrgUserMapper orgUserMapper;
+
+    @Override
+    @Transactional(rollbackFor = BusinessException.class)
+    public String createOrg(String uid, String orgName) {
+        Organization organization = new Organization(IdUtil.getOrgId(), orgName);
+        save(organization);
+        orgUserMapper.insert(new OrgUser(organization.getOrgId(), uid, Role.ORG_CREATOR));
+        return organization.getOrgId();
+    }
+
+    @Override
+    public OrgListVO getList(@PageableDefault(size = 6, page = 1) Pageable pageable, String uid) {
+
+        Page<OrgUser> orgUserPage = new Page<>(pageable.getPageNumber(), pageable.getPageSize());
+        QueryWrapper<OrgUser> ouqw = new QueryWrapper<>();
+        ouqw.eq("uid", uid);
+        // 分页获取该用户的组织
+        Page<OrgUser> orgUserSelectPage = orgUserMapper.selectPage(orgUserPage, ouqw);
+
+        Page<Organization> orgPage = new Page<>(pageable.getPageNumber(), pageable.getPageSize());
+        QueryWrapper<Organization> oqw = new QueryWrapper<>();
+        // 该用户的组织和角色映射
+        Map<String, Integer> orgRoleMap = new HashMap<>(pageable.getPageSize());
+        for (OrgUser v : orgUserSelectPage.getRecords()) {
+            oqw.eq("org_id", v.getOrgId()).or();
+            orgRoleMap.put(v.getOrgId(), v.getRoleId());
+        }
+        // 获取组织信息
+        List<Organization> organizationList = baseMapper.selectList(oqw);
+        List<OrgVO> orgVOList = new ArrayList<>();
+        for (Organization v : organizationList) {
+            RoleVO roleVO = new RoleVO(orgRoleMap.get(v.getOrgId()));
+            orgVOList.add(new OrgVO(v.getOrgId(), v.getOrgName(), v.getOrgRegisterTime(), roleVO));
+        }
+
+        return new OrgListVO(uid, orgVOList);
+    }
 }

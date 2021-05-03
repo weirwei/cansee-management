@@ -3,8 +3,10 @@ package com.weirwei.cansee.mapper.dao;
 import java.io.Serializable;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 /**
@@ -16,6 +18,8 @@ import lombok.experimental.Accessors;
  * @since 2021-03-15
  */
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @ApiModel(value="OrgUser对象", description="用户组织关联表")
@@ -29,5 +33,7 @@ public class OrgUser implements Serializable {
     @ApiModelProperty(value = "用户id")
     private String uid;
 
+    @ApiModelProperty(value = "角色id")
+    private Integer roleId;
 
 }

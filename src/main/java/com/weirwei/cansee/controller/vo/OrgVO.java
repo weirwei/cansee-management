@@ -1,7 +1,4 @@
-package com.weirwei.cansee.mapper.dao;
-
-import java.time.LocalDateTime;
-import java.io.Serializable;
+package com.weirwei.cansee.controller.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
@@ -12,22 +9,18 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
+import java.time.LocalDateTime;
+
 /**
- * <p>
- * 组织
- * </p>
- *
- * @author weirwei
- * @since 2021-03-15
+ * @author weirwei 2021/5/4 0:23
  */
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@ApiModel(value="Organization对象", description="组织")
-public class Organization implements Serializable {
-
-    private static final long serialVersionUID=1L;
+@ApiModel(value = "OrgVO对象", description = "绑定角色的组织")
+public class OrgVO {
 
     @ApiModelProperty(value = "组织编号")
     private String orgId;
@@ -39,13 +32,7 @@ public class Organization implements Serializable {
     @JsonFormat(locale = "zh", timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime orgRegisterTime;
 
-    @ApiModelProperty(value = "组织状态(1, 正常)(0, 已注销)")
-    private Integer orgStatus;
+    @ApiModelProperty(value = "角色")
+    private RoleVO role;
 
-    public Organization(String orgId, String orgName) {
-        this.orgId = orgId;
-        this.orgName = orgName;
-        this.orgRegisterTime = LocalDateTime.now();
-        this.orgStatus = 1;
-    }
 }

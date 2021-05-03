@@ -1,10 +1,7 @@
 package util;
 
-import cn.hutool.crypto.SecureUtil;
 import cn.hutool.crypto.digest.DigestUtil;
-import cn.hutool.crypto.symmetric.SymmetricAlgorithm;
-import cn.hutool.crypto.symmetric.SymmetricCrypto;
-import com.weirwei.cansee.util.UidUtil;
+import com.weirwei.cansee.util.IdUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
@@ -12,10 +9,10 @@ import org.junit.Test;
  * @author weirwei 2021/4/18 19:18
  */
 
-public class UidUtilTest {
+public class IdUtilTest {
     @Test
     public void getUid() {
-        String uid = UidUtil.getNewUserId();
+        String uid = IdUtil.getUserId();
         System.out.println(uid);
         String passwd = "123456";
         String encoded = DigestUtil.md5Hex(passwd);

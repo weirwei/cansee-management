@@ -5,7 +5,7 @@ import com.weirwei.cansee.mapper.dao.User;
 import com.weirwei.cansee.mapper.UserMapper;
 import com.weirwei.cansee.service.IUserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.weirwei.cansee.util.UidUtil;
+import com.weirwei.cansee.util.IdUtil;
 import org.springframework.stereotype.Service;
 
 /**
@@ -21,7 +21,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
     @Override
     public String createUser(String telephone, String nickname) {
-        String uid = UidUtil.getNewUserId();
+        String uid = IdUtil.getUserId();
         User user = new User(uid, nickname, telephone);
         save(user);
         return uid;

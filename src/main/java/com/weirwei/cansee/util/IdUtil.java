@@ -11,8 +11,16 @@ import java.util.UUID;
  * @author weirwei 2021/4/18 19:12
  */
 @Slf4j
-public class UidUtil {
-    public static String getNewUserId() {
+public class IdUtil {
+    public static String getUserId() {
+        return "U" + getId();
+    }
+
+    public static String getOrgId() {
+        return "O" + getId();
+    }
+
+    private static String getId() {
         String ipAddress = "";
         try {
             //获取服务器IP地址
