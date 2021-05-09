@@ -2,6 +2,7 @@ package com.weirwei.cansee.mapper.dao;
 
 import java.io.Serializable;
 
+import com.baomidou.mybatisplus.annotation.TableId;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -28,6 +29,7 @@ public class Role implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @ApiModelProperty(value = "角色id(10001, leader)(10002, manager)(10003, member)")
+    @TableId()
     private Integer roleId;
 
     @ApiModelProperty(value = "权限字符串")

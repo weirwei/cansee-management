@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.io.Serializable;
 import java.util.Date;
 
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -31,6 +32,7 @@ public class User implements Serializable {
     private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "用户的唯一id")
+    @TableId()
     private String uid;
 
     @ApiModelProperty(value = "邮箱")

@@ -1,6 +1,7 @@
 package com.weirwei.cansee.service;
 
 import com.weirwei.cansee.controller.vo.OrgListVO;
+import com.weirwei.cansee.controller.vo.OrgVO;
 import com.weirwei.cansee.mapper.dao.Organization;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.springframework.data.domain.Pageable;
@@ -18,7 +19,7 @@ import java.util.List;
  */
 public interface IOrganizationService extends IService<Organization> {
 
-    String createOrg(String uid, String orgName);
+    OrgVO createOrg(String uid, String orgName);
 
     OrgListVO getList(@PageableDefault(size = 6, page = 1) Pageable pageable, String uid);
 }

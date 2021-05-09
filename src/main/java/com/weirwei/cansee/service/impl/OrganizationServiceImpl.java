@@ -6,7 +6,9 @@ import com.fehead.lang.error.BusinessException;
 import com.weirwei.cansee.controller.vo.OrgListVO;
 import com.weirwei.cansee.controller.vo.OrgVO;
 import com.weirwei.cansee.controller.vo.RoleVO;
+import com.weirwei.cansee.mapper.OrgProjMapper;
 import com.weirwei.cansee.mapper.OrgUserMapper;
+import com.weirwei.cansee.mapper.dao.OrgProj;
 import com.weirwei.cansee.mapper.dao.OrgUser;
 import com.weirwei.cansee.mapper.dao.Organization;
 import com.weirwei.cansee.mapper.OrganizationMapper;
@@ -38,14 +40,22 @@ public class OrganizationServiceImpl extends ServiceImpl<OrganizationMapper, Org
 
     @Resource
     OrgUserMapper orgUserMapper;
+    @Resource
+    OrgProjMapper orgProjMapper;
 
     @Override
     @Transactional(rollbackFor = BusinessException.class)
-    public String createOrg(String uid, String orgName) {
+    public OrgVO createOrg(String uid, String orgName) {
         Organization organization = new Organization(IdUtil.getOrgId(), orgName);
         save(organization);
         orgUserMapper.insert(new OrgUser(organization.getOrgId(), uid, Role.ORG_CREATOR));
-        return organization.getOrgId();
+
+        return new OrgVO(organization.getOrgId(),
+                organization.getOrgName(),
+                0,
+                1,
+                organization.getOrgRegisterTime(),
+                new RoleVO(Role.ORG_CREATOR));
     }
 
     @Override
@@ -56,8 +66,8 @@ public class OrganizationServiceImpl extends ServiceImpl<OrganizationMapper, Org
         ouqw.eq("uid", uid);
         // 分页获取该用户的组织
         Page<OrgUser> orgUserSelectPage = orgUserMapper.selectPage(orgUserPage, ouqw);
+        long pageTotal = orgUserPage.getTotal();
 
-        Page<Organization> orgPage = new Page<>(pageable.getPageNumber(), pageable.getPageSize());
         QueryWrapper<Organization> oqw = new QueryWrapper<>();
         // 该用户的组织和角色映射
         Map<String, Integer> orgRoleMap = new HashMap<>(pageable.getPageSize());
@@ -69,10 +79,12 @@ public class OrganizationServiceImpl extends ServiceImpl<OrganizationMapper, Org
         List<Organization> organizationList = baseMapper.selectList(oqw);
         List<OrgVO> orgVOList = new ArrayList<>();
         for (Organization v : organizationList) {
+            int projNum = orgProjMapper.selectCount(new QueryWrapper<OrgProj>().eq("org_id", v.getOrgId()));
+            int memberNum = orgUserMapper.selectCount(new QueryWrapper<OrgUser>().eq("org_id", v.getOrgId()));
             RoleVO roleVO = new RoleVO(orgRoleMap.get(v.getOrgId()));
-            orgVOList.add(new OrgVO(v.getOrgId(), v.getOrgName(), v.getOrgRegisterTime(), roleVO));
+            orgVOList.add(new OrgVO(v.getOrgId(), v.getOrgName(), projNum, memberNum, v.getOrgRegisterTime(), roleVO));
         }
 
-        return new OrgListVO(uid, orgVOList);
+        return new OrgListVO(uid, orgVOList, pageTotal);
     }
 }

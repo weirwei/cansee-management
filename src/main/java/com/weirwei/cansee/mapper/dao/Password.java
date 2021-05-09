@@ -1,6 +1,8 @@
 package com.weirwei.cansee.mapper.dao;
 
 import java.io.Serializable;
+
+import com.baomidou.mybatisplus.annotation.TableId;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -28,10 +30,9 @@ public class Password implements Serializable {
     private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "用户唯一id")
+    @TableId()
     private String uid;
 
     @ApiModelProperty(value = "用户密码")
     private String password;
-
-
 }

@@ -1,16 +1,18 @@
 package com.weirwei.cansee.controller;
 
 
+import com.fehead.lang.controller.BaseController;
+import com.fehead.lang.error.BusinessException;
+import com.fehead.lang.error.EmBusinessError;
 import com.fehead.lang.response.CommonReturnType;
 import com.fehead.lang.response.FeheadResponse;
-import com.weirwei.cansee.controller.vo.OrgListVO;
+import com.weirwei.cansee.controller.vo.OrgVO;
 import com.weirwei.cansee.service.IOrganizationService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
-
-import com.fehead.lang.controller.BaseController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -38,27 +40,50 @@ public class OrganizationController extends BaseController {
     IOrganizationService organizationService;
 
     @PostMapping("/org")
-    public FeheadResponse createOrg(@RequestParam("org_name") String orgName) {
+    public FeheadResponse createOrg(@RequestParam("orgName") String orgName) throws BusinessException {
         String uid = (String) req.getAttribute("uid");
         log.info("rui:" + req.getRequestURI() +
-                "param:" +
+                ",param:" +
                 "uid=" + uid +
-                "org_name=" + orgName
+                "&org_name=" + orgName
         );
-        String orgId = organizationService.createOrg(uid, orgName);
+        if (StringUtils.isEmpty(orgName)) {
+            throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "组织名不能为空");
+        }
 
-        return CommonReturnType.create(orgId);
+        OrgVO orgVO = organizationService.createOrg(uid, orgName);
+
+        return CommonReturnType.create(orgVO);
     }
+
     @GetMapping("/org")
-    public FeheadResponse getOrg(@PageableDefault(size = 6,page = 1) Pageable pageable) {
+    public FeheadResponse getOrg(@PageableDefault(size = 6, page = 1) Pageable pageable) {
         String uid = (String) req.getAttribute("uid");
         log.info("rui:" + req.getRequestURI() +
-                "param:" +
+                ",param:" +
                 "uid=" + uid +
-                "pageable=" + pageable
+                "&pageable=" + pageable
         );
 
         return CommonReturnType.create(organizationService.getList(pageable, uid));
+    }
+
+    /**
+     * todo
+     * 删除组织
+     *
+     * @param orgId orgId
+     * @return FeheadResponse
+     */
+    @DeleteMapping("/org")
+    public FeheadResponse delOrg(@RequestParam("orgId") String orgId) {
+        String uid = (String) req.getAttribute("uid");
+        log.info("rui:" + req.getRequestURI() +
+                ",param:" +
+                "uid=" + uid +
+                "&orgId=" + orgId
+        );
+        return CommonReturnType.create(null);
     }
 }
 

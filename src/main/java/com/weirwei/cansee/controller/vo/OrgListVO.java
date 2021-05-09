@@ -25,4 +25,7 @@ public class OrgListVO {
 
     @ApiModelProperty(value = "组织信息")
     private List<OrgVO> orgVOList;
+
+    @ApiModelProperty(value = "总页数")
+    private Long pageTotal;
 }

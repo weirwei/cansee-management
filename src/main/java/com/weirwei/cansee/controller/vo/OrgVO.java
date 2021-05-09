@@ -28,6 +28,12 @@ public class OrgVO {
     @ApiModelProperty(value = "组织名")
     private String orgName;
 
+    @ApiModelProperty(value = "项目数")
+    private Integer projNum;
+
+    @ApiModelProperty(value = "成员数")
+    private Integer memberNum;
+
     @ApiModelProperty(value = "组织注册时间")
     @JsonFormat(locale = "zh", timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime orgRegisterTime;
