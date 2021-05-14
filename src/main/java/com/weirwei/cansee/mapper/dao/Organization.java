@@ -41,13 +41,9 @@ public class Organization implements Serializable {
     @JsonFormat(locale = "zh", timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime orgRegisterTime;
 
-    @ApiModelProperty(value = "组织状态(1, 正常)(0, 已注销)")
-    private Integer orgStatus;
-
     public Organization(String orgId, String orgName) {
         this.orgId = orgId;
         this.orgName = orgName;
         this.orgRegisterTime = LocalDateTime.now();
-        this.orgStatus = 1;
     }
 }

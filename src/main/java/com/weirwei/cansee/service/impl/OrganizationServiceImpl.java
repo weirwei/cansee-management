@@ -1,8 +1,10 @@
 package com.weirwei.cansee.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fehead.lang.error.BusinessException;
+import com.fehead.lang.error.EmBusinessError;
 import com.weirwei.cansee.controller.vo.OrgListVO;
 import com.weirwei.cansee.controller.vo.OrgVO;
 import com.weirwei.cansee.controller.vo.RoleVO;
@@ -86,5 +88,20 @@ public class OrganizationServiceImpl extends ServiceImpl<OrganizationMapper, Org
         }
 
         return new OrgListVO(uid, orgVOList, pageTotal);
+    }
+
+    @Override
+    public void delOrg(String uid, String orgId) throws BusinessException {
+
+        OrgUser orgUser = orgUserMapper.selectOne(new QueryWrapper<OrgUser>().
+                eq("uid", uid).
+                eq("org_id", orgId));
+        if (orgUser.getRoleId() != Role.ORG_CREATOR) {
+            throw new BusinessException(EmBusinessError.SERVICE_REQUIRE_ROLE_ADMIN, "权限不足");
+        }
+        // 组织软删除
+        baseMapper.delete(new QueryWrapper<Organization>().eq("org_id", orgId));
+        orgUserMapper.delete(new QueryWrapper<OrgUser>().eq("org_id", orgId));
+        // todo 其他相关删除
     }
 }

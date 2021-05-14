@@ -76,13 +76,15 @@ public class OrganizationController extends BaseController {
      * @return FeheadResponse
      */
     @DeleteMapping("/org")
-    public FeheadResponse delOrg(@RequestParam("orgId") String orgId) {
+    public FeheadResponse delOrg(@RequestParam("orgId") String orgId) throws BusinessException {
         String uid = (String) req.getAttribute("uid");
         log.info("rui:" + req.getRequestURI() +
                 ",param:" +
                 "uid=" + uid +
                 "&orgId=" + orgId
         );
+        organizationService.delOrg(uid, orgId);
+
         return CommonReturnType.create(null);
     }
 }
