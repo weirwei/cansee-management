@@ -2,6 +2,7 @@ package com.weirwei.cansee.mapper.dao;
 
 import java.io.Serializable;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -24,12 +25,13 @@ import lombok.experimental.Accessors;
 public class OrgProj implements Serializable {
 
     private static final long serialVersionUID=1L;
+    @TableId(value = "id", type = IdType.AUTO)
+    @ApiModelProperty(value = "自增id")
+    private Integer id;
 
     @ApiModelProperty(value = "组织id")
-    @TableId()
     private String orgId;
 
     @ApiModelProperty(value = "项目id")
-    @TableId()
     private String projId;
 }

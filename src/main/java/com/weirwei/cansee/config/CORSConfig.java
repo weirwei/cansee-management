@@ -1,4 +1,4 @@
-package com.weirwei.config;
+package com.weirwei.cansee.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

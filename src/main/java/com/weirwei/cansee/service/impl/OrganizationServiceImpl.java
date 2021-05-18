@@ -1,20 +1,18 @@
 package com.weirwei.cansee.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fehead.lang.error.BusinessException;
 import com.fehead.lang.error.EmBusinessError;
-import com.weirwei.cansee.controller.vo.OrgListVO;
-import com.weirwei.cansee.controller.vo.OrgVO;
-import com.weirwei.cansee.controller.vo.RoleVO;
+import com.weirwei.cansee.controller.vo.organization.OrgListVO;
+import com.weirwei.cansee.controller.vo.organization.OrgVO;
+import com.weirwei.cansee.controller.vo.role.RoleVO;
+import com.weirwei.cansee.controller.vo.user.UserSingleVO;
 import com.weirwei.cansee.mapper.OrgProjMapper;
 import com.weirwei.cansee.mapper.OrgUserMapper;
-import com.weirwei.cansee.mapper.dao.OrgProj;
-import com.weirwei.cansee.mapper.dao.OrgUser;
-import com.weirwei.cansee.mapper.dao.Organization;
+import com.weirwei.cansee.mapper.UserMapper;
+import com.weirwei.cansee.mapper.dao.*;
 import com.weirwei.cansee.mapper.OrganizationMapper;
-import com.weirwei.cansee.mapper.dao.Role;
 import com.weirwei.cansee.service.IOrganizationService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.weirwei.cansee.util.IdUtil;
@@ -44,6 +42,8 @@ public class OrganizationServiceImpl extends ServiceImpl<OrganizationMapper, Org
     OrgUserMapper orgUserMapper;
     @Resource
     OrgProjMapper orgProjMapper;
+    @Resource
+    UserMapper userMapper;
 
     @Override
     @Transactional(rollbackFor = BusinessException.class)
@@ -103,5 +103,69 @@ public class OrganizationServiceImpl extends ServiceImpl<OrganizationMapper, Org
         baseMapper.delete(new QueryWrapper<Organization>().eq("org_id", orgId));
         orgUserMapper.delete(new QueryWrapper<OrgUser>().eq("org_id", orgId));
         // todo 其他相关删除
+    }
+
+    @Override
+    public List<UserSingleVO> getMember(@PageableDefault(size = 6, page = 1) Pageable pageable, String orgId) {
+        Page<User> userPage = new Page<>(pageable.getPageNumber(), pageable.getPageSize());
+        List<OrgUser> orgUserList = orgUserMapper.selectList(new QueryWrapper<OrgUser>().eq("org_id", orgId));
+        QueryWrapper<User> uqw = new QueryWrapper<>();
+        Map<String, Integer> userRoleMap = new HashMap<>(orgUserList.size());
+        for (OrgUser ou : orgUserList) {
+            userRoleMap.put(ou.getUid(), ou.getRoleId());
+            uqw.eq("uid", ou.getUid()).or();
+        }
+        Page<User> userSelectPage = userMapper.selectPage(userPage, uqw);
+        List<UserSingleVO> userSingleVOList = new ArrayList<>();
+        for (User user : userSelectPage.getRecords()) {
+            UserSingleVO userSingleVO = new UserSingleVO(user.getUid(), user.getNick(), user.getCreateTime(),
+                    new RoleVO(userRoleMap.get(user.getUid())));
+            userSingleVOList.add(userSingleVO);
+        }
+
+        return userSingleVOList;
+
+    }
+
+    @Override
+    public void addMember(String uid, String orgId, String addUid) throws BusinessException {
+        OrgUser orgUser = orgUserMapper.selectOne(new QueryWrapper<OrgUser>()
+                .eq("uid", uid).eq("org_id", orgId));
+        if (orgUser.getRoleId() != Role.ORG_CREATOR && orgUser.getRoleId() != Role.ORG_ADMINISTRATOR) {
+            throw new BusinessException(EmBusinessError.SERVICE_REQUIRE_ROLE_ADMIN, "权限不足");
+        }
+        User user = userMapper.selectOne(new QueryWrapper<User>().eq("uid", addUid));
+        if (user == null) {
+            throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "用户不存在");
+        }
+        orgUserMapper.insert(new OrgUser(orgId, addUid, Role.ORG_MEMBER));
+    }
+
+    @Override
+    public void delMember(String uid, String orgId, String delUid) throws BusinessException {
+        OrgUser orgUser = orgUserMapper.selectOne(new QueryWrapper<OrgUser>().
+                eq("uid", uid).eq("org_id", orgId));
+        if (orgUser.getRoleId() != Role.ORG_CREATOR && orgUser.getRoleId() != Role.ORG_ADMINISTRATOR) {
+            throw new BusinessException(EmBusinessError.SERVICE_REQUIRE_ROLE_ADMIN, "权限不足");
+        }
+        User user = userMapper.selectOne(new QueryWrapper<User>().eq("uid", delUid));
+        if (user == null) {
+            throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "用户不存在");
+        }
+        orgUserMapper.delete(new QueryWrapper<OrgUser>().eq("org_id", orgId).eq("uid", delUid));
+    }
+
+    @Override
+    public void appointMember(String uid, String orgId, String appointUid, int roleCode) throws BusinessException {
+        OrgUser orgUser = orgUserMapper.selectOne(new QueryWrapper<OrgUser>().
+                eq("uid", uid).eq("org_id", orgId));
+        if (orgUser.getRoleId() != Role.ORG_CREATOR && orgUser.getRoleId() != Role.ORG_ADMINISTRATOR) {
+            throw new BusinessException(EmBusinessError.SERVICE_REQUIRE_ROLE_ADMIN, "权限不足");
+        }
+        User user = userMapper.selectOne(new QueryWrapper<User>().eq("uid", appointUid));
+        if (user == null) {
+            throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "用户不存在");
+        }
+        orgUserMapper.update(new OrgUser(orgId, uid, roleCode), new QueryWrapper<OrgUser>().eq("org_id", orgId).eq("uid", appointUid));
     }
 }

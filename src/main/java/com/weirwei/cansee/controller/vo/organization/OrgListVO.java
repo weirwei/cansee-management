@@ -1,4 +1,4 @@
-package com.weirwei.cansee.controller.vo;
+package com.weirwei.cansee.controller.vo.organization;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;

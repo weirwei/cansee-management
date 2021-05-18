@@ -1,4 +1,4 @@
-package com.weirwei.cansee.controller.vo;
+package com.weirwei.cansee.controller.vo.role;
 
 import com.google.common.collect.ImmutableMap;
 import io.swagger.annotations.ApiModel;

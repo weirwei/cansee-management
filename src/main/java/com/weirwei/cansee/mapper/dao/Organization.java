@@ -3,6 +3,7 @@ package com.weirwei.cansee.mapper.dao;
 import java.time.LocalDateTime;
 import java.io.Serializable;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
@@ -30,8 +31,11 @@ public class Organization implements Serializable {
 
     private static final long serialVersionUID=1L;
 
+    @TableId(value = "id", type = IdType.AUTO)
+    @ApiModelProperty(value = "自增id")
+    private Integer id;
+
     @ApiModelProperty(value = "组织编号")
-    @TableId()
     private String orgId;
 
     @ApiModelProperty(value = "组织名")

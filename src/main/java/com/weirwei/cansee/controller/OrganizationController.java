@@ -6,7 +6,7 @@ import com.fehead.lang.error.BusinessException;
 import com.fehead.lang.error.EmBusinessError;
 import com.fehead.lang.response.CommonReturnType;
 import com.fehead.lang.response.FeheadResponse;
-import com.weirwei.cansee.controller.vo.OrgVO;
+import com.weirwei.cansee.controller.vo.organization.OrgVO;
 import com.weirwei.cansee.service.IOrganizationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -28,6 +28,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 @RestController
 @RequestMapping("/cansee/organization")
+@CrossOrigin("*")
 @Slf4j
 public class OrganizationController extends BaseController {
 
@@ -84,6 +85,76 @@ public class OrganizationController extends BaseController {
                 "&orgId=" + orgId
         );
         organizationService.delOrg(uid, orgId);
+
+        return CommonReturnType.create(null);
+    }
+
+    @GetMapping("/{orgId}/member")
+    public FeheadResponse getMember(@PageableDefault(size = 6, page = 1) Pageable pageable,
+                                    @PathVariable("orgId") String orgId) throws BusinessException {
+        log.info("rui:" + req.getRequestURI() +
+                ",param:" +
+                "orgId=" + orgId +
+                "&pageable=" + pageable
+        );
+        if (StringUtils.isEmpty(orgId)) {
+            throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "组织ID为空");
+        }
+        return CommonReturnType.create(organizationService.getMember(pageable, orgId));
+    }
+
+    @PostMapping("/{orgId}/member/{uid}")
+    public FeheadResponse addMember(@PathVariable("orgId") String orgId,
+                                    @PathVariable("uid") String addUid) throws BusinessException {
+        String uid = (String) req.getAttribute("uid");
+        log.info("rui:" + req.getRequestURI() +
+                ",param:" +
+                "uid=" + uid +
+                "&orgId=" + orgId +
+                "&addUid=" + addUid
+        );
+        if (StringUtils.isEmpty(orgId) || StringUtils.isEmpty(addUid)) {
+            throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "组织ID或用户ID为空");
+        }
+        organizationService.addMember(uid, orgId, addUid);
+
+        return CommonReturnType.create(null);
+    }
+
+    @DeleteMapping("/{orgId}/member/{uid}")
+    public FeheadResponse delMember(@PathVariable("orgId") String orgId,
+                                    @PathVariable("uid") String addUid) throws BusinessException {
+        String uid = (String) req.getAttribute("uid");
+        log.info("rui:" + req.getRequestURI() +
+                ",param:" +
+                "uid=" + uid +
+                "&orgId=" + orgId +
+                "&addUid=" + addUid
+        );
+        if (StringUtils.isEmpty(orgId) || StringUtils.isEmpty(addUid)) {
+            throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "组织ID或用户ID为空");
+        }
+        organizationService.delMember(uid, orgId, addUid);
+
+        return CommonReturnType.create(null);
+    }
+
+    @PutMapping("/{orgId}/member/{uid}")
+    public FeheadResponse appointMember(@PathVariable("orgId") String orgId,
+                                        @PathVariable("uid") String appointUid,
+                                        @RequestParam("appointment") int appointment) throws BusinessException {
+        String uid = (String) req.getAttribute("uid");
+        log.info("rui:" + req.getRequestURI() +
+                ",param:" +
+                "uid=" + uid +
+                "&orgId=" + orgId +
+                "&addUid=" + appointUid +
+                "&appointment" + appointment
+        );
+        if (StringUtils.isEmpty(orgId) || StringUtils.isEmpty(appointUid)) {
+            throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "组织ID或用户ID为空");
+        }
+        organizationService.appointMember(uid, orgId, appointUid, appointment);
 
         return CommonReturnType.create(null);
     }

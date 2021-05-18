@@ -11,6 +11,7 @@ import com.fehead.lang.response.CommonReturnType;
 import com.fehead.lang.response.FeheadResponse;
 import com.fehead.lang.util.CheckEmailAndTelphoneUtil;
 import com.fehead.lang.util.JWTUtil;
+import com.weirwei.cansee.controller.vo.user.UserTokenVO;
 import com.weirwei.cansee.mapper.dao.Password;
 import com.weirwei.cansee.service.IPasswordService;
 import com.weirwei.cansee.service.IUserService;
@@ -110,6 +111,7 @@ public class LoginController extends BaseController {
         }
         logger.info("LOGIN: " + telephone);
         rsp.addHeader("authorization", "bearer " + token);
-        return CommonReturnType.create("bearer " + token);
+
+        return CommonReturnType.create(new UserTokenVO(userService.getUserByUid(pass.getUid()), "bearer " + token));
     }
 }

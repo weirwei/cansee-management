@@ -1,6 +1,7 @@
-package com.weirwei.cansee.controller.vo;
+package com.weirwei.cansee.controller.vo.organization;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.weirwei.cansee.controller.vo.role.RoleVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
