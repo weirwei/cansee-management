@@ -48,4 +48,8 @@ public class OrgUser implements Serializable {
         this.uid = uid;
         this.roleId = roleId;
     }
+
+    public OrgUser(Integer roleId) {
+        this.roleId = roleId;
+    }
 }

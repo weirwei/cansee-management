@@ -18,8 +18,8 @@ import java.util.List;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@ApiModel(value = "OrgListVO对象", description = "某用户的组织")
-public class OrgListVO {
+@ApiModel(value = "OrgPageVO对象", description = "某用户的组织")
+public class OrgPageVO {
     @ApiModelProperty(value = "用户ID")
     private String uid;
 

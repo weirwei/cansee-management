@@ -7,6 +7,7 @@ import com.fehead.lang.error.EmBusinessError;
 import com.fehead.lang.response.CommonReturnType;
 import com.fehead.lang.response.FeheadResponse;
 import com.weirwei.cansee.controller.vo.organization.OrgVO;
+import com.weirwei.cansee.mapper.dao.Role;
 import com.weirwei.cansee.service.IOrganizationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -28,7 +29,6 @@ import javax.servlet.http.HttpServletResponse;
  */
 @RestController
 @RequestMapping("/cansee/organization")
-@CrossOrigin("*")
 @Slf4j
 public class OrganizationController extends BaseController {
 
@@ -58,15 +58,17 @@ public class OrganizationController extends BaseController {
     }
 
     @GetMapping("/org")
-    public FeheadResponse getOrg(@PageableDefault(size = 6, page = 1) Pageable pageable) {
+    public FeheadResponse getOrg(@PageableDefault(size = 6, page = 1) Pageable pageable,
+                                 @RequestParam(value = "search", defaultValue = "") String search)  {
         String uid = (String) req.getAttribute("uid");
         log.info("rui:" + req.getRequestURI() +
                 ",param:" +
                 "uid=" + uid +
-                "&pageable=" + pageable
+                "&pageable=" + pageable+
+                "&search=" + search
         );
 
-        return CommonReturnType.create(organizationService.getList(pageable, uid));
+        return CommonReturnType.create(organizationService.getOrgPage(pageable, uid, search));
     }
 
     /**
@@ -91,16 +93,18 @@ public class OrganizationController extends BaseController {
 
     @GetMapping("/{orgId}/member")
     public FeheadResponse getMember(@PageableDefault(size = 6, page = 1) Pageable pageable,
-                                    @PathVariable("orgId") String orgId) throws BusinessException {
+                                    @PathVariable("orgId") String orgId,
+                                    @RequestParam(value = "search", defaultValue = "") String search) throws BusinessException {
         log.info("rui:" + req.getRequestURI() +
                 ",param:" +
                 "orgId=" + orgId +
-                "&pageable=" + pageable
+                "&pageable=" + pageable +
+                "&search=" + search
         );
         if (StringUtils.isEmpty(orgId)) {
             throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "组织ID为空");
         }
-        return CommonReturnType.create(organizationService.getMember(pageable, orgId));
+        return CommonReturnType.create(organizationService.getMemberPage(pageable, orgId, search));
     }
 
     @PostMapping("/{orgId}/member/{uid}")
@@ -116,9 +120,8 @@ public class OrganizationController extends BaseController {
         if (StringUtils.isEmpty(orgId) || StringUtils.isEmpty(addUid)) {
             throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "组织ID或用户ID为空");
         }
-        organizationService.addMember(uid, orgId, addUid);
 
-        return CommonReturnType.create(null);
+        return CommonReturnType.create(organizationService.addMember(uid, orgId, addUid));
     }
 
     @DeleteMapping("/{orgId}/member/{uid}")
@@ -149,10 +152,16 @@ public class OrganizationController extends BaseController {
                 "uid=" + uid +
                 "&orgId=" + orgId +
                 "&addUid=" + appointUid +
-                "&appointment" + appointment
+                "&appointment=" + appointment
         );
         if (StringUtils.isEmpty(orgId) || StringUtils.isEmpty(appointUid)) {
             throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "组织ID或用户ID为空");
+        }
+        if (appointment != Role.ORG_ADMINISTRATOR && appointment != Role.ORG_CREATOR && appointment != Role.ORG_MEMBER) {
+            throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "角色代码错误");
+        }
+        if (uid.equals(appointUid)) {
+            throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "自己任命自己，真逗");
         }
         organizationService.appointMember(uid, orgId, appointUid, appointment);
 

@@ -1,6 +1,10 @@
 package com.weirwei.cansee.filter;
 
+import com.fehead.lang.error.BusinessException;
+import com.fehead.lang.error.EmBusinessError;
 import com.fehead.lang.util.JWTUtil;
+import io.jsonwebtoken.ExpiredJwtException;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.ServletComponentScan;
@@ -28,23 +32,32 @@ public class JwtFilter implements Filter {
     }
 
 
+    @SneakyThrows
     @Override
-    public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
+    public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) {
         final HttpServletRequest request = (HttpServletRequest) req;
         final HttpServletResponse response = (HttpServletResponse) res;
         //等到请求头信息authorization信息
         final String authHeader = request.getHeader("authorization");
-        String uid = null;
+        String uid;
         if ("OPTIONS".equals(request.getMethod())) {
             response.setStatus(HttpServletResponse.SC_OK);
             chain.doFilter(req, res);
+            return;
         }
         if (authHeader == null || !authHeader.startsWith("bearer ")) {
-            request.getRequestDispatcher("/login/fail").forward(request, response);
+            request.getRequestDispatcher("/error/login").forward(request, response);
             return;
         } else {
             String token = authHeader.replace("bearer ", "");
-            uid = (String) JWTUtil.parasTokenBody(token, SIGN).get("sub");
+            try {
+                uid = (String) JWTUtil.parasTokenBody(token, SIGN).get("sub");
+            } catch (Exception e) {
+                request.setAttribute("tokenErr", e);
+                // 请求转发
+                request.getRequestDispatcher("/error/token").forward(request, response);
+                return;
+            }
             req.setAttribute("uid", uid);
             log.info("user login authorization passed, uid=" + uid);
         }
