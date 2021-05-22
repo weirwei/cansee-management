@@ -1,6 +1,6 @@
 package com.weirwei.cansee.controller.vo.project;
 
-import com.weirwei.cansee.controller.vo.organization.OrgVO;
+import com.weirwei.cansee.controller.vo.log.LogNumVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;

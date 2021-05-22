@@ -42,7 +42,7 @@ public class Project implements Serializable {
     private String projName;
 
     @ApiModelProperty(value = "创建者Uid")
-    private String creatorId;
+    private String creatorUid;
 
     @ApiModelProperty(value = "创建时间")
     private LocalDateTime createTime;
@@ -50,7 +50,7 @@ public class Project implements Serializable {
     public Project(String projId, String projName, String creatorId) {
         this.projId = projId;
         this.projName = projName;
-        this.creatorId = creatorId;
+        this.creatorUid = creatorId;
         this.createTime = LocalDateTime.now();
     }
 }

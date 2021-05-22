@@ -20,6 +20,14 @@ public class IdUtil {
         return "O" + getId();
     }
 
+    public static String getProjId() {
+        return "P" + getId();
+    }
+
+    public static String getLogId() {
+        return "L" + getId();
+    }
+
     private static String getId() {
         String ipAddress = "";
         try {

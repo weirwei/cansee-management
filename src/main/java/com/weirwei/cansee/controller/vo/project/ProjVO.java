@@ -1,6 +1,7 @@
 package com.weirwei.cansee.controller.vo.project;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.weirwei.cansee.controller.vo.log.LogNumVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -30,6 +31,9 @@ public class ProjVO {
 
     @ApiModelProperty(value = "创建者uid")
     private String creatorUid;
+
+    @ApiModelProperty(value = "各类型日志数")
+    private LogNumVO logNum;
 
     @ApiModelProperty(value = "项目创建时间")
     @JsonFormat(locale = "zh", timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")

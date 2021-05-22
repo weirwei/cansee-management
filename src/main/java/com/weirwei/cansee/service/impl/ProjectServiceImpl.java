@@ -5,16 +5,16 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fehead.lang.error.BusinessException;
 import com.fehead.lang.error.EmBusinessError;
+import com.weirwei.cansee.controller.vo.log.LogNumVO;
 import com.weirwei.cansee.controller.vo.project.ProjPageVO;
 import com.weirwei.cansee.controller.vo.project.ProjVO;
+import com.weirwei.cansee.mapper.LogMapper;
 import com.weirwei.cansee.mapper.OrgProjMapper;
 import com.weirwei.cansee.mapper.OrgUserMapper;
 import com.weirwei.cansee.mapper.ProjectMapper;
-import com.weirwei.cansee.mapper.dao.OrgProj;
-import com.weirwei.cansee.mapper.dao.OrgUser;
-import com.weirwei.cansee.mapper.dao.Project;
-import com.weirwei.cansee.mapper.dao.Role;
+import com.weirwei.cansee.mapper.dao.*;
 import com.weirwei.cansee.service.IProjectService;
+import com.weirwei.cansee.util.IdUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -39,6 +39,8 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
     OrgProjMapper orgProjMapper;
     @Resource
     OrgUserMapper orgUserMapper;
+    @Resource
+    LogMapper logMapper;
 
     @Override
     public ProjPageVO getProjPage(Pageable pageable, String orgId, String search) {
@@ -58,8 +60,14 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         Page<Project> projSelectPage = baseMapper.selectPage(projPage, pqw);
         long pageTotal = projSelectPage.getTotal();
         List<ProjVO> projVOList = new ArrayList<>();
-        for (Project v: projSelectPage.getRecords()) {
-            projVOList.add(new ProjVO(v.getProjId(), v.getProjName(), v.getCreatorId(), v.getCreateTime()));
+        for (Project v : projSelectPage.getRecords()) {
+            projVOList.add(
+                    new ProjVO(v.getProjId(),
+                    v.getProjName(),
+                    v.getCreatorUid(),
+                    logTypeCount(v.getProjId()),
+                    v.getCreateTime())
+            );
         }
         return new ProjPageVO(orgId, projVOList, pageTotal);
     }
@@ -67,8 +75,9 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
     @Override
     public ProjVO addProj(String uid, String orgId, String projName) throws BusinessException {
         roleJudge(uid, orgId);
+        Project project = addProjTransaction(uid, orgId, projName);
 
-        return addProjTransaction(uid, orgId, projName);
+        return new ProjVO(project.getProjId(), projName, uid, new LogNumVO(), project.getCreateTime());
     }
 
     @Override
@@ -84,11 +93,11 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
     }
 
     @Transactional(rollbackFor = BusinessException.class)
-    public ProjVO addProjTransaction(String uid, String orgId, String projName) {
-        Project project = new Project(orgId, projName, uid);
+    public Project addProjTransaction(String uid, String orgId, String projName) {
+        Project project = new Project(IdUtil.getProjId(), projName, uid);
         save(project);
         orgProjMapper.insert(new OrgProj(orgId, project.getProjId()));
-        return new ProjVO(orgId, projName, uid, project.getCreateTime());
+        return project;
     }
 
     @Transactional(rollbackFor = BusinessException.class)
@@ -105,5 +114,31 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         if (orgUser.getRoleId() != Role.ORG_ADMINISTRATOR && orgUser.getRoleId() != Role.ORG_CREATOR) {
             throw new BusinessException(EmBusinessError.SERVICE_REQUIRE_ROLE_ADMIN, "权限不足");
         }
+    }
+
+    private LogNumVO logTypeCount(String projId) {
+        List<Log> logList = logMapper.selectList(new QueryWrapper<Log>().eq("proj_id", projId));
+        // 统计各类型日志数
+        int info = 0, debug = 0, warning = 0, error = 0;
+        for (Log log : logList) {
+            switch (log.getLogType()) {
+                case Log.INFO:
+                    info++;
+                    break;
+                case Log.DEBUG:
+                    debug++;
+                    break;
+                case Log.WARNING:
+                    warning++;
+                    break;
+                case Log.ERROR:
+                    error++;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        return new LogNumVO(info, debug, warning, error);
     }
 }
