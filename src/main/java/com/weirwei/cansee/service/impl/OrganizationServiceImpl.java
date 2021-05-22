@@ -65,7 +65,6 @@ public class OrganizationServiceImpl extends ServiceImpl<OrganizationMapper, Org
     @Override
     public OrgPageVO getOrgPage(@PageableDefault(size = 6, page = 1) Pageable pageable, String uid, String search) {
 
-        // 分页获取该用户的组织
         List<OrgUser> orgUserList = orgUserMapper.selectList(new QueryWrapper<OrgUser>().eq("uid", uid));
 
         QueryWrapper<Organization> oqw = new QueryWrapper<>();
@@ -90,7 +89,7 @@ public class OrganizationServiceImpl extends ServiceImpl<OrganizationMapper, Org
         long pageTotal = orgSelectPage.getTotal();
         List<OrgVO> orgVOList = new ArrayList<>();
 
-        // todo 数据查找失败时分页可能不准确，待优化
+        //todo 数据查找失败时分页可能不准确，待优化
         for (Organization v : orgSelectPage.getRecords()) {
             int projNum = orgProjMapper.selectCount(new QueryWrapper<OrgProj>().eq("org_id", v.getOrgId()));
             int memberNum = orgUserMapper.selectCount(new QueryWrapper<OrgUser>().eq("org_id", v.getOrgId()));

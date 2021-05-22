@@ -1,7 +1,11 @@
 package com.weirwei.cansee.service;
 
+import com.fehead.lang.error.BusinessException;
+import com.weirwei.cansee.controller.vo.project.ProjPageVO;
+import com.weirwei.cansee.controller.vo.project.ProjVO;
 import com.weirwei.cansee.mapper.dao.Project;
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.springframework.data.domain.Pageable;
 
 /**
  * <p>
@@ -13,4 +17,11 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IProjectService extends IService<Project> {
 
+    ProjPageVO getProjPage(Pageable pageable, String orgId, String search);
+
+    ProjVO addProj(String uid, String orgId, String projName) throws BusinessException;
+
+    void delProj(String uid, String orgId, String projId) throws BusinessException;
+
+    void getProjConf(String uid, String orgId, String projId);
 }

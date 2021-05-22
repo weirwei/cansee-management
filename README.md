@@ -24,3 +24,26 @@
 
 ## TODO
 - [ ] 团队展示的分页优化
+
+## 接口整理
+组织相关
+- `GET /cansee/organization/org`  分页搜索组织
+- `POST /cansee/organization/org`  创建组织
+- `DELETE /cansee/organization/org`  删除组织
+  
+成员相关
+- `GET /cansee/organization/{orgId}/menber`  分页搜索组织下成员
+- `POST /cansee/organization/{orgId}/member/{uid}`  新增用户
+- `DELETE /cansee/organization/{orgId}/member/{uid}`  删除成员
+- `PUT /cansee/organization/{orgId}/member/{uid}`  修改成员权限
+
+项目相关
+- `GET /cansee/organization/{orgId}/proj`  分页搜索组织下项目
+- `POST /cansee/organization/{orgId}/proj/{projId}`  新增项目
+- `DELETE /cansee/organization/{orgId}/proj/{projId}`  删除项目
+- `GET /cansee/organization/{orgId}/proj/{projId}`  获取项目配置信息
+
+日志相关
+- `GET /cansee/organization/{orgId}/proj/{projId}/log`  分页搜索组织下日志
+- `DELETE /cansee/organization/{orgId}/proj/{projId}/log/{logId}`  删除日志
+- `PUT /cansee/organization/{orgId}/proj/{projId}/log/{logId}`  标记解决

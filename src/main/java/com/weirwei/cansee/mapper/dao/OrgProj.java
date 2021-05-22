@@ -34,4 +34,9 @@ public class OrgProj implements Serializable {
 
     @ApiModelProperty(value = "项目id")
     private String projId;
+
+    public OrgProj(String orgId, String projId) {
+        this.orgId = orgId;
+        this.projId = projId;
+    }
 }

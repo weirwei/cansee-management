@@ -7,8 +7,10 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 /**
@@ -20,6 +22,8 @@ import lombok.experimental.Accessors;
  * @since 2021-03-15
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @ApiModel(value="Project对象", description="项目表")
@@ -37,11 +41,16 @@ public class Project implements Serializable {
     @ApiModelProperty(value = "项目名")
     private String projName;
 
+    @ApiModelProperty(value = "创建者Uid")
+    private String creatorId;
+
     @ApiModelProperty(value = "创建时间")
     private LocalDateTime createTime;
 
-    @ApiModelProperty(value = "状态(0, 不存在)(1, 存在)")
-    private Integer status;
-
-
+    public Project(String projId, String projName, String creatorId) {
+        this.projId = projId;
+        this.projName = projName;
+        this.creatorId = creatorId;
+        this.createTime = LocalDateTime.now();
+    }
 }
