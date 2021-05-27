@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import java.time.LocalDateTime;
 import java.io.Serializable;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -46,6 +48,7 @@ public class Log implements Serializable {
     private String logMsg;
 
     @ApiModelProperty(value = "日志产生时间")
+    @JsonFormat(locale = "zh", timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime logTime;
 
     @ApiModelProperty(value = "日志所属的服务")
@@ -54,5 +57,11 @@ public class Log implements Serializable {
     @ApiModelProperty(value = "日志在项目中所属的类")
     private String logClass;
 
-
+    public Log(Integer logType, String logMsg, String projId, String logClass) {
+        this.logType = logType;
+        this.logMsg = logMsg;
+        this.projId = projId;
+        this.logClass = logClass;
+        this.logTime = LocalDateTime.now();
+    }
 }

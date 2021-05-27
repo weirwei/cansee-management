@@ -17,4 +17,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class LogServiceImpl extends ServiceImpl<LogMapper, Log> implements ILogService {
 
+    @Override
+    public Log addLog(Log log) {
+        save(log);
+        return log;
+    }
 }

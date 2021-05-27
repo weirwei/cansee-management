@@ -48,7 +48,7 @@ public class PasswordServiceImpl extends ServiceImpl<PasswordMapper, Password> i
 
         // 单向加密
         String encodedPasswd = DigestUtil.md5Hex(passwd);
-        save(new Password(uid, new String(encodedPasswd)));
+        save(new Password(uid, encodedPasswd));
         return uid;
     }
 }
