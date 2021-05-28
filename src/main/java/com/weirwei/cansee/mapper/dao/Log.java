@@ -36,10 +36,18 @@ public class Log implements Serializable {
     public final static int DEBUG = 10002;
     public final static int WARNING = 10003;
     public final static int ERROR = 10004;
+    public final static int SOLVED = 1;
 
     @ApiModelProperty(value = "唯一自增id")
-    @TableId(value = "log_id", type = IdType.AUTO)
-    private Long logId;
+    @TableId(value = "id", type = IdType.AUTO)
+    private Long id;
+
+    @ApiModelProperty(value = "唯一id")
+    @TableId(value = "log_id")
+    private String logId;
+
+    @ApiModelProperty(value = "请求id")
+    private String reqId;
 
     @ApiModelProperty(value = "日志类型包括(10001, INFO)(10002, DEBUG)(10003, WARN)(10004, ERROR)")
     private Integer logType;
@@ -57,11 +65,17 @@ public class Log implements Serializable {
     @ApiModelProperty(value = "日志在项目中所属的类")
     private String logClass;
 
-    public Log(Integer logType, String logMsg, String projId, String logClass) {
+    @ApiModelProperty(value = "日志处理状态(1已处理，0未处理)")
+    private Integer solved;
+
+    public Log(String logId, String reqId, Integer logType, String logMsg, String projId, String logClass) {
+        this.logId = logId;
+        this.reqId = reqId;
         this.logType = logType;
         this.logMsg = logMsg;
         this.projId = projId;
         this.logClass = logClass;
         this.logTime = LocalDateTime.now();
+        this.solved = 0;
     }
 }

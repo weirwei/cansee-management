@@ -1,21 +1,14 @@
 package com.weirwei.cansee.filter;
 
-import com.fehead.lang.error.BusinessException;
-import com.fehead.lang.error.EmBusinessError;
 import com.fehead.lang.util.JWTUtil;
-import io.jsonwebtoken.ExpiredJwtException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.servlet.ServletComponentScan;
-import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
 
 import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 /**
  * @author weirwei 2021/4/18 17:54

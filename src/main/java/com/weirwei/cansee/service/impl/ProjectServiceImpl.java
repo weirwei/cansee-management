@@ -104,6 +104,7 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
     public void delProjTransaction(String orgId, String projId) {
         orgProjMapper.delete(new QueryWrapper<OrgProj>().eq("org_id", orgId).eq("proj_id", projId));
         remove(new QueryWrapper<Project>().eq("proj_id", projId));
+        logMapper.delete(new QueryWrapper<Log>().eq("proj_id", projId));
     }
 
     private void roleJudge(String uid, String orgId) throws BusinessException {

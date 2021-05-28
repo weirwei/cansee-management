@@ -13,6 +13,7 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       properties: { session.timeout.ms: 6000, auto.offset.reset: earliest }
+      auto-offset-reset: latest
 
 cansee:
   jwt:
