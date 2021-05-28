@@ -17,8 +17,14 @@
     - [x] 添加成员
     - [x] 权限分配
     - [x] 移除
-### 日志展示
-
+    - [ ] 获得配置信息
+- 日志展示
+    - [x] 展示
+    - [x] 搜索
+    - [x] 解决
+    - [ ] 未解决
+    - [x] 删除
+    - [ ] reqId 聚合
 ### 项目绑定
 
 
@@ -44,6 +50,6 @@
 - `GET /cansee/organization/{orgId}/proj/{projId}`  获取项目配置信息
 
 日志相关
-- `GET /cansee/organization/{orgId}/proj/{projId}/log`  分页搜索组织下日志
+- `GET /cansee/organization/{orgId}/proj/{projId}/log/{type}`  分页搜索组织下日志
 - `DELETE /cansee/organization/{orgId}/proj/{projId}/log/{logId}`  删除日志
 - `PUT /cansee/organization/{orgId}/proj/{projId}/log/{logId}`  标记解决
