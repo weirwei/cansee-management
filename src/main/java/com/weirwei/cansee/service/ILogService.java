@@ -1,6 +1,8 @@
 package com.weirwei.cansee.service;
 
 import com.fehead.lang.error.BusinessException;
+import com.weirwei.cansee.controller.vo.log.LogLineChatVO;
+import com.weirwei.cansee.controller.vo.log.LogNumVO;
 import com.weirwei.cansee.controller.vo.log.LogPageVO;
 import com.weirwei.cansee.mapper.dao.Log;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -22,9 +24,14 @@ public interface ILogService extends IService<Log> {
 
     LogPageVO getLogPage(Pageable pageable, String orgId, String projId, String uid,
                          int code, String reqId,
-                         LocalDateTime start, LocalDateTime end) throws BusinessException;
+                         LocalDateTime start, LocalDateTime end,
+                         int solved) throws BusinessException;
 
-    void solvedLog(String orgId, String projId, String uid, String logId) throws BusinessException;
+    void solvedLog(String orgId, String projId, String uid, String logId, int solved) throws BusinessException;
 
     void delLog(String orgId, String projId, String uid, String logId) throws BusinessException;
+
+    LogNumVO getLogNum(String uid);
+
+    LogLineChatVO getLogLineChat(String uid);
 }

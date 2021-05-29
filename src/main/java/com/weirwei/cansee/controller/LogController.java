@@ -51,7 +51,8 @@ public class LogController extends BaseController {
                                  @PathVariable("type") String type,
                                  @RequestParam(value = "searchReqId", defaultValue = "") String searchReqId,
                                  @RequestParam(value = "start", defaultValue = "") String start,
-                                 @RequestParam(value = "end", defaultValue = "") String end) throws BusinessException {
+                                 @RequestParam(value = "end", defaultValue = "") String end,
+                                 @RequestParam(value = "solved", defaultValue = "0") int solved) throws BusinessException {
         String uid = (String) req.getAttribute("uid");
         log.info("rui:" + req.getRequestURI() +
                 ",param:" +
@@ -62,7 +63,8 @@ public class LogController extends BaseController {
                 "&type=" + type +
                 "&searchReqId=" + searchReqId +
                 "&start=" + start +
-                "&end=" + end
+                "&end=" + end +
+                "&solved=" + solved
         );
         int code = 0;
         switch (type) {
@@ -94,27 +96,29 @@ public class LogController extends BaseController {
             endTime = LocalDateTime.ofEpochSecond(Long.parseLong(end) / 1000, 0, ZoneOffset.ofHours(8));
 
         }
-        return CommonReturnType.create(logService.getLogPage(pageable, orgId, projId, uid, code, searchReqId, startTime, endTime));
+        return CommonReturnType.create(logService.getLogPage(pageable, orgId, projId, uid, code, searchReqId, startTime, endTime, solved));
     }
 
     @PutMapping("/{logId}")
     public FeheadResponse solved(@PathVariable("orgId") String orgId,
                                  @PathVariable("projId") String projId,
-                                 @PathVariable("logId") String logId) throws BusinessException {
+                                 @PathVariable("logId") String logId,
+                                 @RequestParam("solved") int solved) throws BusinessException {
         String uid = (String) req.getAttribute("uid");
         log.info("rui:" + req.getRequestURI() +
                 ",param:" +
                 "uid=" + uid +
                 "&orgId=" + orgId +
                 "&projId=" + projId +
-                "&logId=" + logId
+                "&logId=" + logId +
+                "&solved=" + solved
         );
 
         if (StringUtils.isEmpty(projId) || StringUtils.isEmpty(orgId) || StringUtils.isEmpty(logId)) {
             throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "非法操作");
         }
 
-        logService.solvedLog(orgId, projId, uid, projId);
+        logService.solvedLog(orgId, projId, uid, logId, solved);
 
         return CommonReturnType.create(null);
     }
@@ -140,5 +144,6 @@ public class LogController extends BaseController {
 
         return CommonReturnType.create(null);
     }
+
 }
 

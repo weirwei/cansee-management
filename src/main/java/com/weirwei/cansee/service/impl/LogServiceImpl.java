@@ -9,8 +9,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fehead.lang.error.BusinessException;
 import com.fehead.lang.error.EmBusinessError;
-import com.weirwei.cansee.controller.vo.log.LogPageVO;
-import com.weirwei.cansee.controller.vo.log.LogVO;
+import com.weirwei.cansee.controller.vo.log.*;
 import com.weirwei.cansee.controller.vo.organization.OrgSingleVO;
 import com.weirwei.cansee.controller.vo.project.ProjSingleVO;
 import com.weirwei.cansee.mapper.*;
@@ -23,6 +22,8 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,9 +56,11 @@ public class LogServiceImpl extends ServiceImpl<LogMapper, Log> implements ILogS
     @Override
     public LogPageVO getLogPage(Pageable pageable, String orgId, String projId, String uid,
                                 int code, String reqId,
-                                LocalDateTime start, LocalDateTime end) throws BusinessException {
+                                LocalDateTime start, LocalDateTime end,
+                                int solved) throws BusinessException {
         authentication(orgId, projId, uid);
         QueryWrapper<Log> lqw = new QueryWrapper<>();
+        lqw.eq("solved", solved);
         if (!StringUtils.isEmpty(reqId)) {
             lqw.eq("req_id", reqId);
         }
@@ -85,11 +88,11 @@ public class LogServiceImpl extends ServiceImpl<LogMapper, Log> implements ILogS
     }
 
     @Override
-    public void solvedLog(String orgId, String projId, String uid, String logId) throws BusinessException {
+    public void solvedLog(String orgId, String projId, String uid, String logId, int solved) throws BusinessException {
         authentication(orgId, projId, uid);
 
         UpdateWrapper<Log> lqw = new UpdateWrapper<>();
-        update(lqw.eq("log_id", logId).set("solved", Log.SOLVED));
+        update(lqw.eq("log_id", logId).set("solved", solved));
     }
 
     @Override
@@ -99,15 +102,77 @@ public class LogServiceImpl extends ServiceImpl<LogMapper, Log> implements ILogS
         baseMapper.delete(new QueryWrapper<Log>().eq("log_id", logId));
     }
 
+    @Override
+    public LogNumVO getLogNum(String uid) {
+        List<String> projIdList = getAllProjId(uid);
+
+        int info = count(new QueryWrapper<Log>().eq("log_type", Log.INFO).in("proj_id", projIdList));
+        int warn = count(new QueryWrapper<Log>().eq("log_type", Log.WARNING).in("proj_id", projIdList));
+        int error = count(new QueryWrapper<Log>().eq("log_type", Log.ERROR).in("proj_id", projIdList));
+
+        return new LogNumVO(info, 0, warn, error);
+    }
+
+    @Override
+    public LogLineChatVO getLogLineChat(String uid) {
+        List<String> projIdList = getAllProjId(uid);
+
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String[]  fiveDay = new String[7];
+        LocalDateTime today = LocalDateTime.now();
+
+        LogLineChatVO logLineChatVO = new LogLineChatVO();
+
+        logLineChatVO.setText("近几天日志趋势图");
+        List<Integer> infoData = new ArrayList<>();
+        List<Integer> warnData = new ArrayList<>();
+        List<Integer> errorData = new ArrayList<>();
+        List<String> labels = new ArrayList<>();
+        for (int i = 5; i >= 0; i--) {
+            QueryWrapper<Log> infoQW = new QueryWrapper<Log>().eq("log_type", Log.INFO).in("proj_id", projIdList);
+            QueryWrapper<Log> warnQW = new QueryWrapper<Log>().eq("log_type", Log.WARNING).in("proj_id", projIdList);
+            QueryWrapper<Log> errorQW = new QueryWrapper<Log>().eq("log_type", Log.ERROR).in("proj_id", projIdList);
+            LocalDateTime minus = today.minus(Period.ofDays(i));
+            fiveDay[i] = minus.format(dtf);
+            if (i == 5) {
+                continue;
+            }
+            labels.add(StringUtils.substring(fiveDay[i], 8) + "日");
+            infoQW.apply("date_format (log_time,'%Y-%m-%d') >= date_format('" + fiveDay[i+1] + "','%Y-%m-%d')")
+                    .apply("date_format (log_time,'%Y-%m-%d') < date_format('" + fiveDay[i] + "','%Y-%m-%d')");
+            warnQW.apply("date_format (log_time,'%Y-%m-%d') >= date_format('" + fiveDay[i+1] + "','%Y-%m-%d')")
+                    .apply("date_format (log_time,'%Y-%m-%d') < date_format('" + fiveDay[i] + "','%Y-%m-%d')");
+            errorQW.apply("date_format (log_time,'%Y-%m-%d') >= date_format('" + fiveDay[i+1] + "','%Y-%m-%d')")
+                    .apply("date_format (log_time,'%Y-%m-%d') < date_format('" + fiveDay[i] + "','%Y-%m-%d')");
+            int info = count(infoQW);
+            int warn = count(warnQW);
+            int error = count(errorQW);
+            infoData.add(info);
+            warnData.add(warn);
+            errorData.add(error);
+        }
+        DataSet infoSet = new DataSet("INFO", infoData);
+        DataSet warnSet = new DataSet("WARN", warnData);
+        DataSet errorSet = new DataSet("ERROR", errorData);
+        List<DataSet> dataSets = new ArrayList<>();
+        dataSets.add(infoSet);
+        dataSets.add(warnSet);
+        dataSets.add(errorSet);
+        logLineChatVO.setLabels(labels);
+        logLineChatVO.setDataSets(dataSets);
+
+        return logLineChatVO;
+    }
+
     /**
      * 验证参数合理性
      *
-     * @param orgId orgId
+     * @param orgId  orgId
      * @param projId projId
-     * @param uid uid
+     * @param uid    uid
      * @throws BusinessException BusinessException
      */
-    private void authentication(String orgId,String projId, String uid) throws BusinessException {
+    private void authentication(String orgId, String projId, String uid) throws BusinessException {
         OrgProj orgProj = orgProjMapper.selectOne(new QueryWrapper<OrgProj>().eq("org_id", orgId).eq("proj_id", projId));
         if (orgProj == null) {
             throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "项目不存在");
@@ -116,5 +181,25 @@ public class LogServiceImpl extends ServiceImpl<LogMapper, Log> implements ILogS
         if (orgUser == null) {
             throw new BusinessException(EmBusinessError.SERVICE_REQUIRE_ROLE_ADMIN, "权限不足");
         }
+    }
+
+    /**
+     * 获得用户所有项目id
+     *
+     * @param uid uid
+     * @return List<String>
+     */
+    private List<String> getAllProjId(String uid) {
+        List<OrgUser> orgUserList = orgUserMapper.selectList(new QueryWrapper<OrgUser>().eq("uid", uid));
+        List<String> orgIdList = new ArrayList<>();
+        for (OrgUser v : orgUserList) {
+            orgIdList.add(v.getOrgId());
+        }
+        List<OrgProj> orgProjList = orgProjMapper.selectList(new QueryWrapper<OrgProj>().in("org_id", orgIdList));
+        List<String> projIdList = new ArrayList<>();
+        for (OrgProj v : orgProjList) {
+            projIdList.add(v.getProjId());
+        }
+        return projIdList;
     }
 }

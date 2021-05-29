@@ -37,6 +37,7 @@ public class Log implements Serializable {
     public final static int WARNING = 10003;
     public final static int ERROR = 10004;
     public final static int SOLVED = 1;
+    public final static int RECOVER = 0;
 
     @ApiModelProperty(value = "唯一自增id")
     @TableId(value = "id", type = IdType.AUTO)
