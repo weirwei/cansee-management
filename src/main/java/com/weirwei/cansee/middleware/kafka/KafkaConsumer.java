@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -20,7 +21,7 @@ import java.util.Map;
 public class KafkaConsumer {
 
     @KafkaListener(topics = {"${cansee.log.df-kafkaconsumer.topic}"})
-    public void onMessage(ConsumerRecord<?, ?> record) {
+    public void onMessage(ConsumerRecord<?, ?> record, Acknowledgment ack) {
         log.info(record.toString());
         String recordJsonStr = record.value().toString();
         Map<String, Object> paramMap = new HashMap<>(1);
@@ -34,6 +35,8 @@ public class KafkaConsumer {
         String status = jsonObject.getString("status");
         if (StringUtils.isEmpty(status) || StringUtils.equals(status, "fail")) {
             log.warn("consume log err, res:" + result);
+        } else {
+            ack.acknowledge();
         }
     }
 }
