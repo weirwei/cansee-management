@@ -20,19 +20,22 @@ import java.util.Map;
 @Slf4j
 public class KafkaConsumer {
 
+    private final String kafkaServer = "http://localhost:8080/kafka/consumer";
+
     @KafkaListener(topics = {"${cansee.log.df-kafkaconsumer.topic}"})
     public void onMessage(ConsumerRecord<?, ?> record, Acknowledgment ack) {
         log.info(record.toString());
         String recordJsonStr = record.value().toString();
         Map<String, Object> paramMap = new HashMap<>(1);
         paramMap.put("record", recordJsonStr);
-        String url = "http://localhost:8080/kafka/consumer";
-        String result = HttpRequest.post(url)
+        // 发送http 请求
+        String result = HttpRequest.post(kafkaServer)
                 .form(paramMap)
                 .timeout(20000)
                 .execute().body();
         JSONObject jsonObject = JSON.parseObject(result);
         String status = jsonObject.getString("status");
+        // 返回值校验
         if (StringUtils.isEmpty(status) || StringUtils.equals(status, "fail")) {
             log.warn("consume log err, res:" + result);
         } else {

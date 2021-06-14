@@ -1,5 +1,6 @@
 package com.weirwei.cansee.service.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -16,13 +17,16 @@ import com.weirwei.cansee.mapper.dao.*;
 import com.weirwei.cansee.service.IProjectService;
 import com.weirwei.cansee.util.IdUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -41,6 +45,9 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
     OrgUserMapper orgUserMapper;
     @Resource
     LogMapper logMapper;
+
+    @Value("${cansee.log.df-kafkaconsumer.topic}")
+    private String TOPIC;
 
     @Override
     public ProjPageVO getProjPage(Pageable pageable, String orgId, String search) {
@@ -63,10 +70,10 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         for (Project v : projSelectPage.getRecords()) {
             projVOList.add(
                     new ProjVO(v.getProjId(),
-                    v.getProjName(),
-                    v.getCreatorUid(),
-                    logTypeCount(v.getProjId()),
-                    v.getCreateTime())
+                            v.getProjName(),
+                            v.getCreatorUid(),
+                            logTypeCount(v.getProjId()),
+                            v.getCreateTime())
             );
         }
         return new ProjPageVO(orgId, projVOList, pageTotal);
@@ -88,8 +95,20 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
     }
 
     @Override
-    public void getProjConf(String uid, String orgId, String projId) {
-        //todo 获得项目配置
+    public String getProjConf(String uid, String projId) {
+        Map<String, Object> confMap = new HashMap<>(1);
+        Map<String, Object> logMap = new HashMap<>(2);
+        Map<String, Object> consumerMap = new HashMap<>(1);
+        Map<String, Object> projectMap = new HashMap<>(1);
+        consumerMap.put("topic", TOPIC);
+        projectMap.put("id", projId);
+        logMap.put("df-kafkaconsumer", consumerMap);
+        logMap.put("project", projectMap);
+        confMap.put("log", logMap);
+
+        JSONObject conf = new JSONObject(confMap);
+
+        return conf.toJSONString();
     }
 
     @Transactional(rollbackFor = BusinessException.class)

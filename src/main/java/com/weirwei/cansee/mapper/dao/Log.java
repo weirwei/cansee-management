@@ -44,7 +44,6 @@ public class Log implements Serializable {
     private Long id;
 
     @ApiModelProperty(value = "唯一id")
-    @TableId(value = "log_id")
     private String logId;
 
     @ApiModelProperty(value = "请求id")

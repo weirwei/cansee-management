@@ -95,7 +95,7 @@ public class ProjectController extends BaseController {
 
     @GetMapping("/{projId}/conf")
     public FeheadResponse getProjConf(@PathVariable("orgId") String orgId,
-                                        @RequestParam("projId") String projId) throws BusinessException {
+                                        @PathVariable("projId") String projId) throws BusinessException {
         String uid = (String) req.getAttribute("uid");
         log.info("rui:" + req.getRequestURI() +
                 ",param:" +
@@ -106,9 +106,8 @@ public class ProjectController extends BaseController {
         if (StringUtils.isEmpty(orgId) || StringUtils.isEmpty(projId)) {
             throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "组织ID或项目ID为空");
         }
-        projectService.getProjConf(uid, orgId, projId);
 
-        return CommonReturnType.create(null);
+        return CommonReturnType.create(projectService.getProjConf(uid, projId));
     }
 }
 

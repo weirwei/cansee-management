@@ -1,9 +1,6 @@
 package com.weirwei.cansee.controller;
 
-import cn.hutool.crypto.SecureUtil;
 import cn.hutool.crypto.digest.DigestUtil;
-import cn.hutool.crypto.symmetric.SymmetricAlgorithm;
-import cn.hutool.crypto.symmetric.SymmetricCrypto;
 import com.fehead.lang.controller.BaseController;
 import com.fehead.lang.error.BusinessException;
 import com.fehead.lang.error.EmBusinessError;
@@ -47,24 +44,6 @@ public class LoginController extends BaseController {
     private String SIGN;
 
 
-    @PostMapping("/register")
-    public FeheadResponse register(@RequestParam String telephone,
-                                   @RequestParam String nickname,
-                                   @RequestParam String passwd) throws BusinessException {
-        log.info("{uri:" + req.getContextPath() +
-                ",param:{telephone:" + telephone +
-                ",nickname:" + nickname +
-                "}}");
-        if (StringUtils.isEmpty(telephone) || StringUtils.isEmpty(passwd)) {
-            throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "账号或密码不能为空");
-        }
-        if (!CheckEmailAndTelphoneUtil.checkTelphone(telephone)) {
-            throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "请输入正确手机号");
-        }
-        String uid = passwordService.register(telephone, nickname, passwd);
-        return CommonReturnType.create(uid);
-    }
-
 
     @GetMapping("/register/code")
     public FeheadResponse getOtpCode(@RequestParam String telephone) {
@@ -75,7 +54,7 @@ public class LoginController extends BaseController {
         String otpCode = String.valueOf(randomInt);
         req.getSession().setAttribute(telephone, otpCode);
         log.info(telephone + ": " + otpCode);
-        // todo
+        //todo
         // sendSMS(telephone, otpCode);
         return CommonReturnType.create(null);
     }

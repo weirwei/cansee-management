@@ -23,5 +23,5 @@ public interface IProjectService extends IService<Project> {
 
     void delProj(String uid, String orgId, String projId) throws BusinessException;
 
-    void getProjConf(String uid, String orgId, String projId);
+    String getProjConf(String uid, String projId);
 }

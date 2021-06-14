@@ -1,12 +1,10 @@
 package com.weirwei.cansee.service.impl;
 
-import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fehead.lang.error.BusinessException;
 import com.fehead.lang.error.EmBusinessError;
 import com.weirwei.cansee.controller.vo.log.*;
@@ -15,7 +13,6 @@ import com.weirwei.cansee.controller.vo.project.ProjSingleVO;
 import com.weirwei.cansee.mapper.*;
 import com.weirwei.cansee.mapper.dao.*;
 import com.weirwei.cansee.service.ILogService;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -97,7 +94,10 @@ public class LogServiceImpl extends ServiceImpl<LogMapper, Log> implements ILogS
 
     @Override
     public void delLog(String orgId, String projId, String uid, String logId) throws BusinessException {
-        authentication(orgId, projId, uid);
+        int roleId = authentication(orgId, projId, uid);
+        if (roleId != Role.ORG_CREATOR && roleId != Role.ORG_ADMINISTRATOR) {
+            throw new BusinessException(EmBusinessError.SERVICE_REQUIRE_ROLE_ADMIN, "权限不足");
+        }
 
         baseMapper.delete(new QueryWrapper<Log>().eq("log_id", logId));
     }
@@ -105,48 +105,71 @@ public class LogServiceImpl extends ServiceImpl<LogMapper, Log> implements ILogS
     @Override
     public LogNumVO getLogNum(String uid) {
         List<String> projIdList = getAllProjId(uid);
+        if (projIdList == null) {
+            return new LogNumVO(0, 0, 0, 0);
+        }
 
-        int info = count(new QueryWrapper<Log>().eq("log_type", Log.INFO).in("proj_id", projIdList));
-        int warn = count(new QueryWrapper<Log>().eq("log_type", Log.WARNING).in("proj_id", projIdList));
-        int error = count(new QueryWrapper<Log>().eq("log_type", Log.ERROR).in("proj_id", projIdList));
+        int info = count(new QueryWrapper<Log>()
+                .eq("log_type", Log.INFO)
+                .eq("solved", Log.RECOVER)
+                .in("proj_id", projIdList));
+        int warn = count(new QueryWrapper<Log>()
+                .eq("log_type", Log.WARNING)
+                .eq("solved", Log.RECOVER)
+                .in("proj_id", projIdList));
+        int error = count(new QueryWrapper<Log>()
+                .eq("log_type", Log.ERROR)
+                .eq("solved", Log.RECOVER)
+                .in("proj_id", projIdList));
 
         return new LogNumVO(info, 0, warn, error);
     }
 
     @Override
     public LogLineChatVO getLogLineChat(String uid) {
-        List<String> projIdList = getAllProjId(uid);
-
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        String[]  fiveDay = new String[7];
-        LocalDateTime today = LocalDateTime.now();
-
         LogLineChatVO logLineChatVO = new LogLineChatVO();
-
         logLineChatVO.setText("近几天日志趋势图");
         List<Integer> infoData = new ArrayList<>();
         List<Integer> warnData = new ArrayList<>();
         List<Integer> errorData = new ArrayList<>();
         List<String> labels = new ArrayList<>();
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String[] fiveDay = new String[7];
+        LocalDateTime today = LocalDateTime.now();
+
+        List<String> projIdList = getAllProjId(uid);
+
         for (int i = 5; i >= 0; i--) {
-            QueryWrapper<Log> infoQW = new QueryWrapper<Log>().eq("log_type", Log.INFO).in("proj_id", projIdList);
-            QueryWrapper<Log> warnQW = new QueryWrapper<Log>().eq("log_type", Log.WARNING).in("proj_id", projIdList);
-            QueryWrapper<Log> errorQW = new QueryWrapper<Log>().eq("log_type", Log.ERROR).in("proj_id", projIdList);
             LocalDateTime minus = today.minus(Period.ofDays(i));
             fiveDay[i] = minus.format(dtf);
             if (i == 5) {
                 continue;
             }
+            int info = 0, warn = 0, error = 0;
             labels.add(StringUtils.substring(fiveDay[i], 8) + "日");
-            infoQW.apply("date_format (log_time,'%Y-%m-%d') >= date_format('" + fiveDay[i+1] + "','%Y-%m-%d')")
-                    .apply("date_format (log_time,'%Y-%m-%d') < date_format('" + fiveDay[i] + "','%Y-%m-%d')");
-            warnQW.apply("date_format (log_time,'%Y-%m-%d') >= date_format('" + fiveDay[i+1] + "','%Y-%m-%d')")
-                    .apply("date_format (log_time,'%Y-%m-%d') < date_format('" + fiveDay[i] + "','%Y-%m-%d')");
-            errorQW.apply("date_format (log_time,'%Y-%m-%d') >= date_format('" + fiveDay[i+1] + "','%Y-%m-%d')")
-                    .apply("date_format (log_time,'%Y-%m-%d') < date_format('" + fiveDay[i] + "','%Y-%m-%d')");
-            int info = count(infoQW);
-            int warn = count(warnQW);
-            int error = count(errorQW);
+            if (projIdList != null) {
+                QueryWrapper<Log> infoQW = new QueryWrapper<Log>()
+                        .eq("log_type", Log.INFO)
+                        .eq("solved", Log.RECOVER)
+                        .in("proj_id", projIdList);
+                QueryWrapper<Log> warnQW = new QueryWrapper<Log>()
+                        .eq("log_type", Log.WARNING)
+                        .eq("solved", Log.RECOVER)
+                        .in("proj_id", projIdList);
+                QueryWrapper<Log> errorQW = new QueryWrapper<Log>()
+                        .eq("log_type", Log.ERROR)
+                        .eq("solved", Log.RECOVER)
+                        .in("proj_id", projIdList);
+                infoQW.apply("date_format (log_time,'%Y-%m-%d') >= date_format('" + fiveDay[i + 1] + "','%Y-%m-%d')")
+                        .apply("date_format (log_time,'%Y-%m-%d') < date_format('" + fiveDay[i] + "','%Y-%m-%d')");
+                warnQW.apply("date_format (log_time,'%Y-%m-%d') >= date_format('" + fiveDay[i + 1] + "','%Y-%m-%d')")
+                        .apply("date_format (log_time,'%Y-%m-%d') < date_format('" + fiveDay[i] + "','%Y-%m-%d')");
+                errorQW.apply("date_format (log_time,'%Y-%m-%d') >= date_format('" + fiveDay[i + 1] + "','%Y-%m-%d')")
+                        .apply("date_format (log_time,'%Y-%m-%d') < date_format('" + fiveDay[i] + "','%Y-%m-%d')");
+                info = count(infoQW);
+                warn = count(warnQW);
+                error = count(errorQW);
+            }
             infoData.add(info);
             warnData.add(warn);
             errorData.add(error);
@@ -172,7 +195,7 @@ public class LogServiceImpl extends ServiceImpl<LogMapper, Log> implements ILogS
      * @param uid    uid
      * @throws BusinessException BusinessException
      */
-    private void authentication(String orgId, String projId, String uid) throws BusinessException {
+    private int authentication(String orgId, String projId, String uid) throws BusinessException {
         OrgProj orgProj = orgProjMapper.selectOne(new QueryWrapper<OrgProj>().eq("org_id", orgId).eq("proj_id", projId));
         if (orgProj == null) {
             throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "项目不存在");
@@ -181,6 +204,8 @@ public class LogServiceImpl extends ServiceImpl<LogMapper, Log> implements ILogS
         if (orgUser == null) {
             throw new BusinessException(EmBusinessError.SERVICE_REQUIRE_ROLE_ADMIN, "权限不足");
         }
+
+        return orgUser.getRoleId();
     }
 
     /**
@@ -194,6 +219,9 @@ public class LogServiceImpl extends ServiceImpl<LogMapper, Log> implements ILogS
         List<String> orgIdList = new ArrayList<>();
         for (OrgUser v : orgUserList) {
             orgIdList.add(v.getOrgId());
+        }
+        if (orgIdList.size() == 0) {
+            return null;
         }
         List<OrgProj> orgProjList = orgProjMapper.selectList(new QueryWrapper<OrgProj>().in("org_id", orgIdList));
         List<String> projIdList = new ArrayList<>();

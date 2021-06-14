@@ -80,6 +80,10 @@ public class OrganizationServiceImpl extends ServiceImpl<OrganizationMapper, Org
             selectOrgId.add(v.getOrgId());
             orgRoleMap.put(v.getOrgId(), v.getRoleId());
         }
+        if (selectOrgId.size() == 0) {
+            return null;
+        }
+
         oqw.in("org_id", selectOrgId);
 
         Page<Organization> orgPage = new Page<>(pageable.getPageNumber(), pageable.getPageSize());
@@ -115,7 +119,7 @@ public class OrganizationServiceImpl extends ServiceImpl<OrganizationMapper, Org
         // 组织软删除
         baseMapper.delete(new QueryWrapper<Organization>().eq("org_id", orgId));
         orgUserMapper.delete(new QueryWrapper<OrgUser>().eq("org_id", orgId));
-        // todo 其他相关删除
+        //todo 其他相关删除
     }
 
     @Override
@@ -169,9 +173,12 @@ public class OrganizationServiceImpl extends ServiceImpl<OrganizationMapper, Org
         if (orgUser.getRoleId() != Role.ORG_CREATOR && orgUser.getRoleId() != Role.ORG_ADMINISTRATOR) {
             throw new BusinessException(EmBusinessError.SERVICE_REQUIRE_ROLE_ADMIN, "权限不足");
         }
-        User user = userMapper.selectOne(new QueryWrapper<User>().eq("uid", delUid));
-        if (user == null) {
+        OrgUser delOrgUser = orgUserMapper.selectOne(new QueryWrapper<OrgUser>().eq("uid", delUid));
+        if (delOrgUser == null) {
             throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "用户不存在");
+        }
+        if (delOrgUser.getRoleId() != Role.ORG_MEMBER) {
+            throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "只能 移除普通成员");
         }
         orgUserMapper.delete(new QueryWrapper<OrgUser>().eq("org_id", orgId).eq("uid", delUid));
     }
